@@ -385,9 +385,11 @@ execute_opencode() {
   local prompt="$2"
   local opencode_args=()
 
+  local opencode_option_lines
+  opencode_option_lines=$(get_opencode_option_args)
   while IFS= read -r arg; do
-    opencode_args+=("$arg")
-  done < <(get_opencode_option_args)
+    [[ -n "$arg" ]] && opencode_args+=("$arg")
+  done <<< "$opencode_option_lines"
 
   # OpenCode CLI accepts prompt as positional argument.
   # The timeout path uses stdin to avoid ARG_MAX for normal GGA runs.
@@ -1029,10 +1031,12 @@ collect_process_tree() {
 
   echo "$root_pid"
   if command -v pgrep >/dev/null 2>&1; then
+    local children
+    children=$(pgrep -P "$root_pid" 2>/dev/null || true)
     while IFS= read -r child; do
       [[ -n "$child" ]] || continue
       collect_process_tree "$child"
-    done < <(pgrep -P "$root_pid" 2>/dev/null || true)
+    done <<< "$children"
   fi
 }
 
@@ -1094,9 +1098,11 @@ execute_with_timeout() {
       # TERM so ignored signals or a fast-exiting wrapper cannot reparent child
       # CLIs before the KILL pass.
       local -a process_tree=()
+      local process_tree_lines
+      process_tree_lines=$(collect_process_tree "$cmd_pid")
       while IFS= read -r tree_pid; do
         [[ -n "$tree_pid" ]] && process_tree+=("$tree_pid")
-      done < <(collect_process_tree "$cmd_pid")
+      done <<< "$process_tree_lines"
       kill_process_list TERM "${process_tree[@]}"
       sleep 0.5
       kill_process_list KILL "${process_tree[@]}"
@@ -1246,9 +1252,11 @@ execute_provider_with_timeout() {
           if [[ "$model" == "$provider" ]]; then
             model=""
           fi
+          local opencode_option_lines
+          opencode_option_lines=$(get_opencode_option_args)
           while IFS= read -r arg; do
-            opencode_args+=("$arg")
-          done < <(get_opencode_option_args)
+            [[ -n "$arg" ]] && opencode_args+=("$arg")
+          done <<< "$opencode_option_lines"
 
           if [[ -n "$model" ]]; then
             # Pass model and option args positionally to avoid shell injection.
