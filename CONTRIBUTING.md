@@ -207,3 +207,5 @@ Tests live in:
 - `spec/integration/` — tests requiring a real git repo or environment
 
 All new features and bug fixes must include tests.
+
+Do not use bash process substitution (`<(...)`) in `bin/`, `lib/`, `install.sh`, or `uninstall.sh`: `/dev/fd` is unavailable inside proot-distro on Termux. Capture the command output in a variable and read it with a here-string (`<<< "$output"`) instead. `spec/unit/portability_spec.sh` enforces this rule.

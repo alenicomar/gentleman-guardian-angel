@@ -273,6 +273,19 @@ sanitize_config_file() {
   sed $'1s/^\xef\xbb\xbf//' "$config_file" | tr -d '\r'
 }
 
+source_config_file() {
+  local config_file="$1"
+  local sanitized_file
+
+  # Source through a temp file instead of process substitution: /dev/fd is
+  # unavailable in some environments (e.g. proot-distro on Termux).
+  sanitized_file=$(mktemp "${TMPDIR:-/tmp}/gga-config.XXXXXX") || return 1
+  sanitize_config_file "$config_file" > "$sanitized_file"
+  # shellcheck source=/dev/null
+  source "$sanitized_file"
+  rm -f "$sanitized_file"
+}
+
 load_config() {
   # Reset to defaults
   PROVIDER=""
@@ -288,15 +301,13 @@ load_config() {
   # Load global config first (platform-aware path)
   GLOBAL_CONFIG=$(get_global_config_path)
   if [[ -f "$GLOBAL_CONFIG" ]]; then
-    # shellcheck source=/dev/null
-    source <(sanitize_config_file "$GLOBAL_CONFIG")
+    source_config_file "$GLOBAL_CONFIG"
   fi
 
   # Load project config (overrides global)
   PROJECT_CONFIG=".gga"
   if [[ -f "$PROJECT_CONFIG" ]]; then
-    # shellcheck source=/dev/null
-    source <(sanitize_config_file "$PROJECT_CONFIG")
+    source_config_file "$PROJECT_CONFIG"
   fi
 
   # Environment variable overrides everything
