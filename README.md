@@ -50,7 +50,7 @@ You have coding standards. Your team ignores them. Code reviews catch issues too
 - 🪝 **Git native** — Standard pre-commit hook
 - ⚡ **Smart caching** — Skip unchanged files
 - 🔍 **PR review mode** — Review full PRs, not just last commit
-- 🪟 **Cross-platform** — macOS, Linux, Windows (Git Bash), WSL
+- 🪟 **Cross-platform** — macOS, Linux, Windows (Git Bash), WSL, proot-distro on Termux
 
 ---
 
@@ -82,6 +82,19 @@ echo 'export PATH="$HOME/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 On Windows, the installer also creates `~/bin/gga.bat` so `gga` can be called from `cmd.exe` and PowerShell. Add `%USERPROFILE%\bin` to your Windows user `PATH` for those shells; `.bashrc` only affects Git Bash.
 
 > **WSL** is also fully supported — no special configuration needed.
+
+### Android (proot-distro on Termux)
+
+Install and run GGA from inside the proot-distro Linux distribution (for example Ubuntu), not from the plain Termux shell:
+
+```bash
+proot-distro login ubuntu
+git clone https://github.com/Gentleman-Programming/gentleman-guardian-angel.git
+cd gentleman-guardian-angel
+./install.sh
+```
+
+GGA avoids bash process substitution (`<(...)`) because `/dev/fd` is not available inside proot.
 
 ### Oh My Zsh users
 
