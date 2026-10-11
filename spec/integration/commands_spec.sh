@@ -198,6 +198,15 @@ Describe 'gga commands'
       The output should include "claude"
     End
 
+    It 'removes the temporary sanitized config after loading'
+      mkdir -p "$TEMP_DIR/tmp"
+      echo 'PROVIDER="claude"' > .gga
+      When call env TMPDIR="$TEMP_DIR/tmp" "$PROJECT_ROOT/bin/gga" config
+      The status should be success
+      The output should include "claude"
+      The value "$(find "$TEMP_DIR/tmp" -type f | wc -l | tr -d ' ')" should eq "0"
+    End
+
     It 'loads global config from Windows-style APPDATA path in Git Bash'
       mkdir -p "$TEST_BIN_DIR" "$TEST_HOME/AppData/Roaming/gga"
       cat > "$TEST_BIN_DIR/cygpath" <<'EOF'
